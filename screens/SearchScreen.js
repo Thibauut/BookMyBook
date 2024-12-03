@@ -160,7 +160,7 @@ const SearchScreen = () => {
 
   // Navigate to book details
   const onItemClick = bookInfo => {
-    // navigation.navigate('BookDetailsScreen', bookInfo);
+    navigation.navigate('BookCardScreen', bookInfo);
   };
 
   return (

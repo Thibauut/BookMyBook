@@ -42,7 +42,7 @@ def insert_books_data():
             ('978-0-307-74271-5', 'The Girl with the Dragon Tattoo', 'Stieg Larsson', 2005, 'Crime', 10, 7, 'assets/the_girl_with_the_dragon_tattoo.jpg'),
             ('978-0-593-31159-1', 'Circe', 'Madeline Miller', 2018, 'Mythological', 7, 5, 'assets/circe.jpg'),
             ('978-0-593-13123-9', 'The Seven Husbands of Evelyn Hugo', 'Taylor Jenkins Reid', 2017, 'Historical', 9, 6, 'assets/the_seven_husbands_of_evelyn_hugo.jpg'),
-            ('978-0-06-243288-8', 'The Midnight Library', 'Matt Haig', 2020, 'Speculative', 8, 0, 'assets/the_midnight_library.jpg'),
+            ('978-0-06-243288-8', 'The Midnight Library', 'Matt Haig', 2020, 'Speculative', 8, 21, 'assets/the_midnight_library.jpg'),
             ('978-0-593-31159-2', 'Pachinko', 'Min Jin Lee', 2017, 'Historical', 7, 4, 'assets/pachinko.jpg'),
             ('978-0-06-242687-0', 'Born a Crime', 'Trevor Noah', 2016, 'Memoir', 6, 3, 'assets/born_a_crime.jpg'),
             ('978-0-385-42167-7', 'The Pillars of the Earth', 'Ken Follett', 1989, 'Historical', 12, 9, 'assets/the_pillars_of_the_earth.jpg'),
@@ -253,11 +253,88 @@ def get_top_books():
         print(f"Error retrieving top books: {e}")
         return jsonify({'error': 'Internal Server Error'}), 500
 
+def insert_reviews_data():
+    try:
+        # Open a database cursor
+        cur = mysql.connection.cursor()
+
+        # Insert review data
+        reviews = [
+            (1, 1, 5, 'An amazing and timeless story about love and friendship.'),
+            (2, 14, 4, 'A chilling portrayal of totalitarianism and surveillance, very thought-provoking.'),
+            (1, 19, 3, 'An interesting read, though the plot was a bit slow at times.'),
+            (2, 5, 5, 'A masterpiece that deals with racism, justice, and compassion. Highly recommended!'),
+            (1, 8, 4, 'A thrilling and fast-paced mystery, kept me hooked from start to finish.'),
+            (2, 3, 5, 'A brilliant coming-of-age novel with deep emotional resonance.'),
+            (1, 25, 4, 'A fantastic fantasy adventure, though the pacing was a bit uneven at times.'),
+            (2, 37, 4, 'An inspirational book'),
+            (1, 26, 2, 'Not my favorite, but still an interesting story about psychological tension.'),
+            (2, 10, 5, 'A beautifully written and emotional novel.')
+        ]
+        # Insert each review into the database
+        cur.executemany("""
+            INSERT INTO book_reviews (user_id, book_id, rating, review_text)
+            VALUES (%s, %s, %s, %s)
+        """, reviews)
+
+        # Commit the transaction
+        mysql.connection.commit()
+
+        # Close the cursor
+        cur.close()
+
+        print("Reviews data inserted successfully")
+
+    except Exception as e:
+        print(f"Error inserting reviews data: {e}")
+
+@app.route('/reviews', methods=['GET'])
+def get_reviews():
+    try:
+        # Open a database cursor
+        cur = mysql.connection.cursor()
+
+        # Execute the query to get all reviews along with book_id
+        cur.execute("""
+            SELECT br.review_id, u.username, b.title, br.book_id, br.rating, br.review_text, br.review_date
+            FROM book_reviews br
+            JOIN users u ON br.user_id = u.user_id
+            JOIN books b ON br.book_id = b.book_id
+        """)
+
+        # Fetch all the rows
+        reviews = cur.fetchall()
+
+        # Close the cursor
+        cur.close()
+
+        # Format the reviews data into a list of dictionaries
+        reviews_list = []
+        for review in reviews:
+            reviews_list.append({
+                'review_id': review[0],
+                'username': review[1],
+                'book_title': review[2],
+                'book_id': review[3],  # Include book_id in the response
+                'rating': review[4],
+                'review_text': review[5],
+                'review_date': review[6].strftime('%Y-%m-%d %H:%M:%S')  # Format date if needed
+            })
+
+        # Return the reviews as JSON response
+        return jsonify({'reviews': reviews_list})
+
+    except Exception as e:
+        print(f"Error retrieving reviews: {e}")
+        return jsonify({'error': 'Internal Server Error'}), 500
+
+
 
 if __name__ == '__main__':
     # Insert books data into the database
     with app.app_context():
         insert_books_data()
+        insert_reviews_data()
     # Run the Flask app
     app.run(host='localhost', port=30360)
 

@@ -22,7 +22,7 @@ import Icon3 from 'react-native-vector-icons/FontAwesome';
 import { useNavigation } from '@react-navigation/native';
 import { AppRegistry } from 'react-native';
 
-const EmployeeProfileScreen = ({ route }) => {
+const BookCardScreen = ({ route }) => {
   const employeeInfo = route.params;
   const [imageData, setImageData] = useState(null);
   const [Iuser, setIuser] = useState({});
@@ -185,4 +185,4 @@ const styles = StyleSheet.create({
 
 });
 
-export default EmployeeProfileScreen;
+export default BookCardScreen;

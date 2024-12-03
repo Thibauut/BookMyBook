@@ -2,7 +2,13 @@
 DROP DATABASE IF EXISTS bookmybook;
 CREATE DATABASE bookmybook;
 
+
 USE bookmybook;
+DROP TABLE IF EXISTS book_reviews;
+DROP TABLE IF EXISTS reading_lists;
+DROP TABLE IF EXISTS book_loans;
+DROP TABLE IF EXISTS books;
+DROP TABLE IF EXISTS users;
 
 -- Table des utilisateurs
 CREATE TABLE users (

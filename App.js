@@ -7,7 +7,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import LoginScreen from './screens/LoginScreen';
 import HomeTabs from './screens/HomeScreen';
-import EmployeeProfileScreen from './screens/EmployeeProfileScreen';
+import EmployeeProfileScreen from './screens/BookCardScreen';
 import { MyProvider } from './utils/Provider';
 
 const Stack = createStackNavigator();

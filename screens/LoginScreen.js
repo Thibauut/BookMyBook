@@ -47,7 +47,7 @@ const LoginScreen = () => {
   };
   const emailBorderColor = isEmailFocused ? '#82a3ff' : '#e6e6e6';
   const passwordBorderColor = isPasswordFocused ? '#82a3ff' : '#e6e6e6';
-  const { data, fetchBooks, fetchTopBooks } = useContext(MyContext);
+  const { data, fetchBooks, fetchTopBooks, fetchReviews } = useContext(MyContext);
 
   const navigation = useNavigation();
   const handlePress = (email, password) => {
@@ -62,6 +62,7 @@ const LoginScreen = () => {
 
         fetchBooks();
         fetchTopBooks();
+        fetchReviews();
 
 
         navigation.navigate('HomeScreen');
@@ -88,9 +89,6 @@ const LoginScreen = () => {
           <Text style={{fontSize: 20, color: '#333333', marginBottom: 70}}>
             Welcome back to the App 📚
           </Text>
-
-
-
 
           <Text style={{fontSize: 15, color: '#333333', marginLeft: 15, fontWeight: 'bold'}}>
             Email Address
@@ -155,7 +153,7 @@ const styles = StyleSheet.create({
     borderWidth: '2%',
     borderRadius: 12,
     backgroundColor: '#ffffff',
-    height: '11%',
+    height: '10%',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: "center",
@@ -165,7 +163,7 @@ const styles = StyleSheet.create({
     marginTop: '2%',
     borderWidth: '2%',
     borderRadius: 12,
-    height: '11%',
+    height: '10%',
     backgroundColor: '#ffffff',
     flexDirection: 'row',
     justifyContent: 'center',

@@ -7,6 +7,7 @@ const MyProvider = ({ children }) => {
   const [data, setData] = useState({
     books: [], // Initialize with an empty array for books
     topBooks: [], // Add a state for the top books
+    reviews: [], // Add a state for reviews
     error: null, // To track errors
   });
 
@@ -48,8 +49,27 @@ const MyProvider = ({ children }) => {
       });
   };
 
+  // Function to fetch all reviews from the backend
+  const fetchReviews = () => {
+    axios.get('http://localhost:30360/reviews')
+      .then(response => {
+        setData(prevState => ({
+          ...prevState,
+          reviews: response.data.reviews, // Update reviews in the context
+          error: null,                    // Clear any previous errors
+        }));
+      })
+      .catch(error => {
+        console.error("There was an error fetching the reviews:", error);
+        setData(prevState => ({
+          ...prevState,
+          error: 'Failed to load reviews. Please try again.', // Update error in the context
+        }));
+      });
+  };
+
   return (
-    <MyContext.Provider value={{ data, fetchBooks, fetchTopBooks }}>
+    <MyContext.Provider value={{ data, fetchBooks, fetchTopBooks, fetchReviews }}>
       {children}
     </MyContext.Provider>
   );
