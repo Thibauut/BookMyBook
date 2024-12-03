@@ -58,12 +58,9 @@ const LoginScreen = () => {
     console.log(data_login);
     axios.post('http://localhost:30360/login', data_login ).then(response => {
       if (response.status === 200) {
-        console.log(response.data);
-
         fetchBooks();
         fetchTopBooks();
         fetchReviews();
-
 
         navigation.navigate('HomeScreen');
       }

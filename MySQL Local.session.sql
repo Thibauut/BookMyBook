@@ -32,7 +32,8 @@ CREATE TABLE books (
     total_copies INT NOT NULL,
     available_copies INT NOT NULL,
     cover_image VARCHAR(255),
-    cover_image_binary LONGBLOB
+    cover_image_binary LONGBLOB,
+    synopsis TEXT
 );
 
 -- Table des emprunts

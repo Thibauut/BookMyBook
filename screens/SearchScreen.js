@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { MyContext } from '../utils/Provider';
+import BookCardScreen from './BookCardScreen';
 
 const SearchScreen = () => {
   const { data, fetchBooks } = useContext(MyContext); // Accessing context
@@ -160,7 +161,8 @@ const SearchScreen = () => {
 
   // Navigate to book details
   const onItemClick = bookInfo => {
-    navigation.navigate('BookCardScreen', bookInfo);
+    console.log('Book clicked:', bookInfo.synopsis);
+    navigation.navigate('BookCardScreen', { bookInfo });
   };
 
   return (

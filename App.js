@@ -7,7 +7,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import LoginScreen from './screens/LoginScreen';
 import HomeTabs from './screens/HomeScreen';
-import EmployeeProfileScreen from './screens/BookCardScreen';
+import BookCardScreen from './screens/BookCardScreen';
 import { MyProvider } from './utils/Provider';
 
 const Stack = createStackNavigator();
@@ -18,9 +18,9 @@ function App() {
     <MyProvider>
       <NavigationContainer>
         <Stack.Navigator >
-          <Stack.Screen name="Login" component={LoginScreen} options={{headerShown: false, gestureEnabled: false, title: 'Restaurants'}}/>
+          <Stack.Screen name="Login" component={LoginScreen} options={{headerShown: false, gestureEnabled: false}}/>
           <Stack.Screen name="HomeScreen" component={HomeTabs} options={{headerShown: false, gestureEnabled: false}}/>
-          <Stack.Screen name="EmployeeProfileScreen" component={EmployeeProfileScreen} options={{headerShown: false}} />
+          <Stack.Screen name="BookCardScreen" component={BookCardScreen} options={{headerShown: false}} />
         </Stack.Navigator>
       </NavigationContainer>
     </MyProvider>
