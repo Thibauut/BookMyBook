@@ -99,7 +99,6 @@ def insert_books_data():
 
 @app.route('/login', methods=['POST'])
 
-
 def login():
     try:
         data = request.json
@@ -163,8 +162,6 @@ def logout():
     return jsonify({'message': 'Logout successful'})
 
 @app.route('/allbooks', methods=['POST'])
-
-@app.route('/allbooks', methods=['POST'])
 def get_all_books():
     try:
         # Open a database cursor
@@ -207,6 +204,53 @@ def get_all_books():
 
     except Exception as e:
         print(f"Error retrieving books: {e}")
+        return jsonify({'error': 'Internal Server Error'}), 500
+
+@app.route('/topbooks', methods=['GET'])
+def get_top_books():
+    try:
+        # Open a database cursor
+        cur = mysql.connection.cursor()
+
+        # Execute the query to get the books with the least availability
+        cur.execute("""
+            SELECT isbn, title, author, publication_year, genre, total_copies, available_copies, cover_image, cover_image_binary
+            FROM books
+            ORDER BY available_copies ASC
+            LIMIT 7
+        """)
+
+        # Fetch the top 4 books
+        books = cur.fetchall()
+
+        # Close the cursor
+        cur.close()
+
+        # Format the books data into a list of dictionaries
+        books_list = []
+        for book in books:
+            # Convert the binary image data to a base64 string if it exists
+            cover_image_base64 = None
+            if book[8]:  # Check if binary data exists
+                cover_image_base64 = base64.b64encode(book[8]).decode('utf-8')
+
+            books_list.append({
+                'isbn': book[0],
+                'title': book[1],
+                'author': book[2],
+                'publication_year': book[3],
+                'genre': book[4],
+                'total_copies': book[5],
+                'available_copies': book[6],
+                'cover_image': book[7],  # Path or URL of the image
+                'cover_image_binary': cover_image_base64  # Base64 encoded binary image
+            })
+
+        # Return the top 4 books as a JSON response
+        return jsonify({'top_books': books_list})
+
+    except Exception as e:
+        print(f"Error retrieving top books: {e}")
         return jsonify({'error': 'Internal Server Error'}), 500
 
 

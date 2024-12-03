@@ -1,5 +1,11 @@
-import * as React from 'react';
-import { View, Text, Dimensions, TouchableOpacity, StyleSheet, FlatList, ScrollView, SafeAreaView} from 'react-native';
+import React, {
+  Component,
+  useState,
+  useEffect,
+  useContext,
+  useCallback,
+  useRef,
+} from 'react';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { useNavigation } from '@react-navigation/native';
@@ -11,6 +17,24 @@ import Icon2 from 'react-native-vector-icons/FontAwesome';
 import Icon3 from 'react-native-vector-icons/AntDesign';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import {
+  TouchableOpacity,
+  ImageBackground,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  View,
+  Image,
+  Animated,
+  Dimensions,
+  TextInput,
+  TouchableWithoutFeedback,
+  ActivityIndicator,
+  Keyboard,
+  Alert,
+  Switch,
+} from 'react-native';
+import { MyContext } from '../utils/Provider';
 
 
 
@@ -19,6 +43,12 @@ const TopTab = createMaterialTopTabNavigator();
 
 
 const HomeScreen = () => {
+    const scrollY = useRef(new Animated.Value(0)).current;
+    const x_screen = Dimensions.get('window').width;
+    const y_screen = Dimensions.get('window').height;
+
+    const { data, fetchBooks, fetchTopBooks } = useContext(MyContext);
+
     const navigation = useNavigation();
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: '#fff'}}>
@@ -26,6 +56,70 @@ const HomeScreen = () => {
         <View style={styles.titleContainer}>
         <Text style={{fontSize: 40, fontWeight: 'bold', padding: '7%'}}>Welcome 📚</Text>
       </View>
+
+      <Text style={{
+        marginHorizontal: '5%',
+        paddingHorizontal: '6%',
+        fontSize: 20, color: '#333333', marginLeft: 15, fontWeight: 'bold', marginBottom: "5%"}}>
+            Popular Books
+      </Text>
+
+      <View style={{marginBottom: '2%',
+        }}>
+        <Animated.FlatList
+          horizontal={true}
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+            { useNativeDriver: true },
+          )}
+          data={data.topBooks}  // Use topBooks from context
+          showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
+          scrollEnabled={true}
+          contentContainerStyle={{
+            marginLeft: '3%',
+            marginBottom: '5%',
+            width: 1411,
+          }}
+          renderItem={({ item, index }) => (
+            <View style={{
+
+              backgroundColor: '#ffffff',
+              borderRadius: 8,
+              width: 186,
+              height: 250,
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderColor: '#f2f2f2',
+            }}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'center',  // Center the content horizontally
+                  alignItems: 'center',      // Vertically align the content
+                  width: '100%',             // Ensure full width of the container
+                  height: 280,               // Set a fixed height for the image container
+                }}
+              >
+                <Image
+                  style={[styles.bookImage, { width: 185, height: 250 }]}  // Explicitly set width and height
+                  resizeMode="stretch"
+                  source={{ uri: `data:image/jpeg;base64,${item.cover_image_binary}` }}
+                />
+              </View>
+            </View>
+          )}
+          keyExtractor={(item) => item.isbn}  // Assuming `isbn` is unique
+          ItemSeparatorComponent={() => <View style={{ width: 13 }} />}
+        />
+        </View>
+
+        <Text style={{
+          marginHorizontal: '5%',
+          paddingHorizontal: '6%',
+          fontSize: 20, color: '#333333', marginLeft: 15, fontWeight: 'bold', marginBottom: "5%"}}>
+              Popular Books
+        </Text>
 
       </View>
     </SafeAreaView>
@@ -70,6 +164,12 @@ const HomeScreen = () => {
   };
 
   const styles = StyleSheet.create({
+    bookImage: {
+      width: '43%',
+      height: '110%',
+      borderRadius: 12,
+      marginLeft: 5,
+    },
     containerTitle: {
       backgroundColor: '#fff',
       height: '20%',

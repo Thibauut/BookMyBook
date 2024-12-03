@@ -38,6 +38,37 @@ const SearchScreen = () => {
     setFilteredBooks(newFilteredBooks);
   };
 
+  const getGenreColor = genre => {
+    const genreColors = {
+      Conte: '#ffbf80',
+      Literary: '#ffbf80',
+      Magical: '#ffbf80',
+      Historical: '#ffbf80',
+      Speculative: '#ffbf80',
+
+      Horror: '#b3b3ff',
+      Realism: '#b3b3ff',
+      Fantasy: '#b3b3ff',
+      Romance: '#b3b3ff',
+      Thriller: '#b3b3ff',
+
+      Science: '#c2f0c2',
+      Philosophical: '#c2f0c2',
+      Psychological: '#c2f0c2',
+      Apocalyptic: '#c2f0c2',
+      Comedic: '#c2f0c2',
+
+      Crime: '#ffb3cc',
+      Mythological: '#ffb3cc',
+      Memoir: '#ffb3cc',
+      Mystery: '#ffb3cc',
+      Contemporary: '#ffb3cc',
+    };
+
+    // Default color if genre is not mapped
+    return genreColors[genre] || '#ccddff'; // Default light blue
+  };
+
   // Render individual book item
   const BookItem = ({ bookInfo }) => {
     const imageSource = {
@@ -108,7 +139,7 @@ const SearchScreen = () => {
               height: '15%',
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: '#ccddff',
+              backgroundColor: getGenreColor(bookInfo.genre),
               marginLeft: '8%',
             }}
           >

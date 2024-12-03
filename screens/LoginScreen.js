@@ -1,5 +1,4 @@
 import React, { useState, useContext } from 'react';
-import HomeScreen from './HomeScreen';
 import {StyleSheet,
   TextInput,
   View,
@@ -48,7 +47,7 @@ const LoginScreen = () => {
   };
   const emailBorderColor = isEmailFocused ? '#82a3ff' : '#e6e6e6';
   const passwordBorderColor = isPasswordFocused ? '#82a3ff' : '#e6e6e6';
-  const { data, fetchBooks } = useContext(MyContext);
+  const { data, fetchBooks, fetchTopBooks } = useContext(MyContext);
 
   const navigation = useNavigation();
   const handlePress = (email, password) => {
@@ -62,6 +61,8 @@ const LoginScreen = () => {
         console.log(response.data);
 
         fetchBooks();
+        fetchTopBooks();
+
 
         navigation.navigate('HomeScreen');
       }

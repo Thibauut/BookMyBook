@@ -7,7 +7,6 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import LoginScreen from './screens/LoginScreen';
 import HomeTabs from './screens/HomeScreen';
-import AddWidgetScreen from './screens/AddWidgetScreen';
 import EmployeeProfileScreen from './screens/EmployeeProfileScreen';
 import { MyProvider } from './utils/Provider';
 
@@ -15,27 +14,6 @@ const Stack = createStackNavigator();
 
 
 function App() {
-  const [errorMsg, setErrorMsg] = useState(null);
-  const [location, setLocation] = useState(null);
-
-  // navigator.geolocation.getCurrentPosition();
-//   if (navigator.geolocation) {
-//     var location_timeout = setTimeout("geolocFail()", 10000);
-
-//     navigator.geolocation.getCurrentPosition(function(position) {
-//         clearTimeout(location_timeout);
-
-//         var lat = position.coords.latitude;
-//         var lng = position.coords.longitude;
-
-//         geocodeLatLng(lat, lng);
-//     }, function(error) {
-//         clearTimeout(location_timeout);
-//         geolocFail();
-//     });
-// } else {
-//   console.log('ERROR');
-// }
   return (
     <MyProvider>
       <NavigationContainer>
@@ -43,7 +21,6 @@ function App() {
           <Stack.Screen name="Login" component={LoginScreen} options={{headerShown: false, gestureEnabled: false, title: 'Restaurants'}}/>
           <Stack.Screen name="HomeScreen" component={HomeTabs} options={{headerShown: false, gestureEnabled: false}}/>
           <Stack.Screen name="EmployeeProfileScreen" component={EmployeeProfileScreen} options={{headerShown: false}} />
-          <Stack.Screen name="AddWidgetScreen" component={AddWidgetScreen} options={{headerShown: false, gestureEnabled: false}}/>
         </Stack.Navigator>
       </NavigationContainer>
     </MyProvider>
