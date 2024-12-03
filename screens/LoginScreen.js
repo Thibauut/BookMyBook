@@ -48,6 +48,7 @@ const LoginScreen = () => {
   };
   const emailBorderColor = isEmailFocused ? '#82a3ff' : '#e6e6e6';
   const passwordBorderColor = isPasswordFocused ? '#82a3ff' : '#e6e6e6';
+  const { data, fetchBooks } = useContext(MyContext);
 
   const navigation = useNavigation();
   const handlePress = (email, password) => {
@@ -59,6 +60,9 @@ const LoginScreen = () => {
     axios.post('http://localhost:30360/login', data_login ).then(response => {
       if (response.status === 200) {
         console.log(response.data);
+
+        fetchBooks();
+
         navigation.navigate('HomeScreen');
       }
     }).catch(error => {

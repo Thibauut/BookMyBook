@@ -1,46 +1,35 @@
 import React, { createContext, useState } from 'react';
+import axios from 'axios';
 
 const MyContext = createContext();
 
 const MyProvider = ({ children }) => {
   const [data, setData] = useState({
-    me: {},
-    employee: [{}],
-    employeeTmp: [{}],
-    imageData: [{}],
+    books: [],  // Initialize with an empty array for books
+    error: null, // To track errors
   });
 
-  const updateProfileData = (myProfileData) => {
-    setData((prevData) => ({
-      ...prevData,
-      me: myProfileData,
-    }));
-  };
-
-  const updateEmployeeData = (newEmployeeData) => {
-    setData((prevData) => ({
-      ...prevData,
-      employee: newEmployeeData,
-    }));
-  };
-
-  const updateEmployeeTmpData = (newEmployeeTmpData) => {
-    setData((prevData) => ({
-      ...prevData,
-      employeeTmp: newEmployeeTmpData,
-    }));
-  };
-
-
-  const updateImageData = (newImageData) => {
-    setData((prevData) => ({
-      ...prevData,
-      imageData: newImageData,
-    }));
+  // Function to fetch books and update the state
+  const fetchBooks = () => {
+    axios.post('http://localhost:30360/allbooks')
+      .then(response => {
+        setData(prevState => ({
+          ...prevState,
+          books: response.data.books, // Update books in the context
+          error: null,                // Clear any previous errors
+        }));
+      })
+      .catch(error => {
+        console.error("There was an error fetching the books:", error);
+        setData(prevState => ({
+          ...prevState,
+          error: 'Failed to load books. Please try again.', // Update error in the context
+        }));
+      });
   };
 
   return (
-    <MyContext.Provider value={{ data, updateEmployeeData, updateImageData, updateEmployeeTmpData, updateProfileData}}>
+    <MyContext.Provider value={{ data, fetchBooks }}>
       {children}
     </MyContext.Provider>
   );
