@@ -47,7 +47,7 @@ const LoginScreen = () => {
   };
   const emailBorderColor = isEmailFocused ? '#82a3ff' : '#e6e6e6';
   const passwordBorderColor = isPasswordFocused ? '#82a3ff' : '#e6e6e6';
-  const { data, fetchBooks, fetchTopBooks, fetchReviews } = useContext(MyContext);
+  const { data, fetchBooks, fetchTopBooks, fetchReviews, handleLogin } = useContext(MyContext);
 
   const navigation = useNavigation();
   const handlePress = (email, password) => {
@@ -61,7 +61,8 @@ const LoginScreen = () => {
         fetchBooks();
         fetchTopBooks();
         fetchReviews();
-
+        console.log(response.data.user);
+        handleLogin(response.data.user);
         navigation.navigate('HomeScreen');
       }
     }).catch(error => {

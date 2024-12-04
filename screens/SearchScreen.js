@@ -161,7 +161,6 @@ const SearchScreen = () => {
 
   // Navigate to book details
   const onItemClick = bookInfo => {
-    console.log('Book clicked:', bookInfo.synopsis);
     navigation.navigate('BookCardScreen', { bookInfo });
   };
 

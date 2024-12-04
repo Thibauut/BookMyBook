@@ -3,6 +3,7 @@ from flask_cors import CORS
 from flask_mysqldb import MySQL
 import bcrypt
 import base64
+from datetime import datetime
 
 
 app = Flask(__name__)
@@ -107,16 +108,19 @@ def login():
         email = data.get('email')
         password = data.get('password')
 
+        # Open a database cursor
         cur = mysql.connection.cursor()
 
+        # Updated SQL query to fetch user details
         cur.execute("""
-            SELECT user_id, username, password 
+            SELECT user_id, username, password, first_name, last_name, email, registration_date 
             FROM users 
             WHERE email = %s
         """, (email,))
 
         user = cur.fetchone()
         cur.close()
+
         if user:
             stored_password = user[2]
             # Convertir le mot de passe en bytes si nécessaire
@@ -124,7 +128,7 @@ def login():
                 stored_password = stored_password.encode('utf-8')
             # Vérification du mot de passe
             try:
-                # Essayez différentes méthodes de vérification
+                # Vérifier le mot de passe en texte brut ou avec bcrypt
                 if stored_password == password.encode('utf-8'):
                     # Mot de passe en texte brut
                     return jsonify({
@@ -132,7 +136,10 @@ def login():
                         'user': {
                             'id': user[0], 
                             'username': user[1],
-                            'email': email
+                            'first_name': user[3],
+                            'last_name': user[4],
+                            'email': user[5],
+                            'registration_date': user[6].strftime('%Y-%m-%d %H:%M:%S')  # Format the date
                         }
                     })
                 elif bcrypt.checkpw(password.encode('utf-8'), stored_password):
@@ -142,7 +149,10 @@ def login():
                         'user': {
                             'id': user[0], 
                             'username': user[1],
-                            'email': email
+                            'first_name': user[3],
+                            'last_name': user[4],
+                            'email': user[5],
+                            'registration_date': user[6].strftime('%Y-%m-%d %H:%M:%S')  # Format the date
                         }
                     })
                 else:
@@ -156,6 +166,7 @@ def login():
         print(f"Error: {e}")
         return jsonify({'error': 'Internal Server Error'}), 500
 
+
 @app.route('/logout', methods=['POST'])
 def logout():
     session.pop('user_id', None)
@@ -167,9 +178,9 @@ def get_all_books():
         # Open a database cursor
         cur = mysql.connection.cursor()
 
-        # Execute the query to get all books, including the binary data of the cover image
+        # Execute the query to get all books, including the binary data of the cover image and book id
         cur.execute("""
-            SELECT isbn, title, author, publication_year, genre, total_copies, available_copies, cover_image, cover_image_binary, synopsis
+            SELECT book_id, isbn, title, author, publication_year, genre, total_copies, available_copies, cover_image, cover_image_binary, synopsis
             FROM books
         """)
 
@@ -184,20 +195,21 @@ def get_all_books():
         for book in books:
             # Convert the binary image data to a base64 string if it exists
             cover_image_base64 = None
-            if book[8]:  # Check if binary data exists
-                cover_image_base64 = base64.b64encode(book[8]).decode('utf-8')
+            if book[9]:  # Check if binary data exists
+                cover_image_base64 = base64.b64encode(book[9]).decode('utf-8')
 
             books_list.append({
-                'isbn': book[0],
-                'title': book[1],
-                'author': book[2],
-                'publication_year': book[3],
-                'genre': book[4],
-                'total_copies': book[5],
-                'available_copies': book[6],
-                'cover_image': book[7],  # Path or URL of the image
+                'id': book[0],  # Add book id (assuming book_id is the first column in the table)
+                'isbn': book[1],
+                'title': book[2],
+                'author': book[3],
+                'publication_year': book[4],
+                'genre': book[5],
+                'total_copies': book[6],
+                'available_copies': book[7],
+                'cover_image': book[8],  # Path or URL of the image
                 'cover_image_binary': cover_image_base64,  # Base64 encoded binary image
-                'synopsis': book[9]
+                'synopsis': book[10]
             })
 
         # Return the books as JSON response
@@ -289,115 +301,6 @@ def insert_reviews_data():
     except Exception as e:
         print(f"Error inserting reviews data: {e}")
 
-# def insert_book_synopses():
-#     try:
-#         # Open a database cursor
-#         cur = mysql.connection.cursor()
-
-#         # Dictionary of book synopses mapped by ISBN
-#         book_synopses = {
-#             '978-2-1234-5678-9': 'A heartwarming tale of a young prince who travels from planet to planet, learning valuable life lessons about love, friendship, and the importance of seeing beyond the surface of things.',
-#             '978-2-9876-5432-1': 'A dystopian novel set in a totalitarian society where the government maintains control through surveillance, manipulation of language, and the suppression of individual thought.',
-#             '978-0-451-52493-5': 'A witty exploration of love, marriage, and social status in early 19th-century England, following the intelligent Elizabeth Bennet as she navigates societal expectations and her complex relationship with Mr. Darcy.',
-#             '978-0-06-112008-4': 'A powerful story of racial injustice in the American South, told through the eyes of Scout Finch, as her father Atticus Finch defends a Black man falsely accused of a crime.',
-#             '978-0-7432-7356-5': 'A fast-paced thriller following symbologist Robert Langdon as he unravels a complex mystery involving hidden codes, religious conspiracies, and ancient secrets within the art and architecture of Europe.',
-#             '978-0-316-76948-0': 'A groundbreaking novel about teenage alienation and angst, following Holden Caulfield as he navigates the challenges of adolescence and his struggle against the adult world\'s perceived phoniness.',
-#             '978-0-547-24779-4': 'An epic fantasy adventure of Bilbo Baggins, a comfort-loving hobbit who is swept into a dangerous quest to help a group of dwarves reclaim their homeland from the dragon Smaug.',
-#             '978-0-385-42164-6': 'A philosophical novel about a young shepherd\'s spiritual journey across the desert, seeking a mysterious treasure and learning profound life lessons about following one\'s personal legend.',
-#             '978-0-593-31196-6': 'A gripping psychological thriller about a famous painter who becomes mute after allegedly murdering her husband, and the psychotherapist determined to uncover the truth.',
-#             '978-0-593-13154-3': 'A lyrical coming-of-age story that intertwines a murder mystery with the life of Kya Clark, a girl who grows up isolated in the marshlands of North Carolina.',
-#             '978-0-679-73452-3': 'A landmark magical realist novel tracing multiple generations of the Buendía family in the fictional town of Macondo, exploring themes of time, destiny, and human nature.',
-#             '978-0-307-47478-4': 'A bleak post-apocalyptic narrative following a father and son traveling through a devastated America, struggling to survive while maintaining their humanity.',
-#             '978-0-060-93293-5': 'A comedic fantasy about an angel and a demon who have become friends over millennia and team up to prevent the apocalypse to preserve their comfortable life on Earth.',
-#             '978-0-451-47490-5': 'An epic science fiction novel set in a feudal interstellar society, following Paul Atreides as he becomes embroiled in the complex politics of a desert planet crucial to the universe\'s most valuable resource.',
-#             '978-0-547-57494-7': 'A scientifically detailed survival story about an astronaut stranded on Mars, using his ingenuity and scientific knowledge to stay alive and find a way back to Earth.',
-#             '978-0-062-31030-6': 'A magical tale of two rival magicians who fall in love while competing in an enchanted circus that only opens at night, creating a mesmerizing world of illusion and romance.',
-#             '978-0-307-74271-5': 'A dark thriller about a journalist and a skilled hacker who investigate a complex case of corporate corruption and serial murder in Sweden.',
-#             '978-0-593-31159-1': 'A reimagining of the myth of Circe, the sorceress from Homer\'s Odyssey, exploring her life, magical powers, and journey of self-discovery and empowerment.',
-#             '978-0-593-13123-9': 'A captivating novel about a Hollywood icon who reveals the secrets of her scandalous life to a young journalist, exploring fame, love, and identity.',
-#             '978-0-06-243288-8': 'A thought-provoking story about a woman who finds herself in a library between life and death, where she can explore different versions of the life she might have lived.',
-#             '978-0-593-31159-2': 'An epic saga following four generations of a Korean family, exploring themes of colonization, migration, and survival across decades of historical upheaval.',
-#             '978-0-06-242687-0': 'A memoir by Trevor Noah that offers a humorous and poignant look at growing up as a mixed-race child in South Africa during the apartheid era.',
-#             '978-0-385-42167-7': 'An epic historical novel set in 12th-century England, following the construction of a cathedral and the lives of the people involved in its building.',
-#             '978-0-679-73536-0': 'A melancholic novel about love, loss, and nostalgia, following a young man\'s memories of a passionate relationship during his college years.',
-#             '978-0-374-28089-0': 'A historical novel about Thomas Cromwell\'s rise to power in the court of Henry VIII, offering a nuanced portrayal of political intrigue and personal ambition.',
-#             '978-0-593-31201-8': 'A reimagining of the myth of Achilles and Patroclus, exploring their relationship from childhood through the Trojan War, blending romance and classical mythology.',
-#             '978-0-06-234692-0': 'A powerful novel that reimagines the Underground Railroad as a literal subterranean train system, exploring the history of slavery and resistance in America.',
-#             '978-0-307-74438-2': 'A novel about race relations in the American South during the 1960s, told through the perspectives of Black maids and the white women they work for.',
-#             '978-0-593-31200-1': 'A contemporary love story exploring the complex relationship between two young people as they navigate personal growth, class differences, and emotional intimacy.',
-#             '978-0-06-243362-5': 'A historical novel set during the Dust Bowl era, following a woman\'s struggle to survive and protect her family during one of the most challenging periods in American history.',
-#             '978-0-593-13115-4': 'A thought-provoking science fiction novel about an artificial being named Klara who observes human behavior and seeks to understand love and connection.',
-#             '978-0-593-31145-0': 'A fantasy romance about a human girl who is drawn into a dangerous and magical world of faeries, exploring themes of love, sacrifice, and personal transformation.',
-#             '978-0-316-76175-0': 'An epic fantasy following a legendary wizard recounting his extraordinary life, blending magic, music, and a quest for knowledge.',
-#             '978-0-593-31172-6': 'A psychological thriller about the complex dynamics of a marriage and the dark secrets that threaten to destroy a seemingly perfect relationship.',
-#             '978-0-593-31170-2': 'A science fiction adventure about an astronaut on a mission to save humanity, combining scientific problem-solving with emotional depth and unexpected twists.',
-#             '978-0-593-31169-6': 'A mystery novel about a woman searching for the truth about her husband\'s disappearance and the secrets he left behind.',
-#             '978-0-593-31167-2': 'A unique fantasy about a woman who makes a Faustian bargain to live forever but is cursed to be forgotten by everyone she meets.',
-#             '978-0-593-31166-5': 'A gothic horror novel set in 1950s Mexico, exploring family secrets, colonialism, and supernatural forces in a decaying mansion.'
-#         }
-
-#         # Update books with synopses
-#         for isbn, synopsis in book_synopses.items():
-#             cur.execute("""
-#                 UPDATE books 
-#                 SET synopsis = %s 
-#                 WHERE isbn = %s
-#             """, (synopsis, isbn))
-
-#         # Commit the transaction
-#         mysql.connection.commit()
-
-#         # Close the cursor
-#         cur.close()
-
-#         print("Book synopses inserted successfully")
-
-#     except Exception as e:
-#         print(f"Error inserting book synopses: {e}")
-
-def insert_book_synopses():
-    try:
-        # Open a database cursor
-        cur = mysql.connection.cursor()
-
-        # Dictionary of book synopses mapped by ISBN
-        book_synopses = {
-            '978-2-1234-5678-9': 'A heartwarming tale of a young prince...',
-            # Add all other ISBNs here...
-        }
-
-        # Update books with synopses
-        for isbn, synopsis in book_synopses.items():
-            # Check if the ISBN exists in the database
-            cur.execute("SELECT COUNT(*) FROM books WHERE isbn = %s", (isbn,))
-            count = cur.fetchone()[0]
-            if count == 0:
-                print(f"ISBN {isbn} not found in the database.")
-                continue  # Skip updating this ISBN
-
-            # Proceed with updating synopsis
-            cur.execute("""
-                UPDATE books 
-                SET synopsis = %s 
-                WHERE isbn = %s
-            """, (synopsis, isbn))
-
-        # Commit the transaction
-        mysql.connection.commit()
-
-        # Verify that updates were applied
-        for isbn in book_synopses.keys():
-            cur.execute("SELECT isbn, synopsis FROM books WHERE isbn = %s", (isbn,))
-            print(f"Updated: {cur.fetchall()}")
-
-        # Close the cursor
-        cur.close()
-
-        print("Book synopses inserted successfully")
-
-    except Exception as e:
-        print(f"Error inserting book synopses: {e}")
-
 @app.route('/reviews', methods=['GET'])
 def get_reviews():
     try:
@@ -438,14 +341,155 @@ def get_reviews():
         print(f"Error retrieving reviews: {e}")
         return jsonify({'error': 'Internal Server Error'}), 500
 
+@app.route('/book_loans', methods=['POST'])
+def add_book_loan():
+    try:
+        # Get data from the POST request
+        data = request.get_json()
+
+        # Validate required fields
+        user_id = data.get('user_id')
+        book_id = data.get('book_id')
+        loan_date = data.get('loan_date')  # Expected format: 'YYYY-MM-DD'
+        due_date = data.get('due_date')    # Expected format: 'YYYY-MM-DD'
+
+        if not user_id or not book_id or not loan_date or not due_date:
+            return jsonify({'error': 'Missing required fields'}), 400
+
+        # Convert dates to datetime objects
+        loan_date = datetime.strptime(loan_date, '%Y-%m-%d')
+        due_date = datetime.strptime(due_date, '%Y-%m-%d')
+
+        # Open a database cursor
+        cur = mysql.connection.cursor()
+
+        # Check if the book exists and has available copies
+        cur.execute("SELECT available_copies FROM books WHERE book_id = %s", (book_id,))
+        book = cur.fetchone()
+
+        if not book:
+            return jsonify({'error': 'Book not found'}), 404
+        available_copies = book[0]
+
+        if available_copies <= 0:
+            return jsonify({'error': 'No available copies of this book'}), 400
+
+        # Check if the book is already on loan (status 'En cours')
+        cur.execute("""
+            SELECT loan_id FROM book_loans
+            WHERE book_id = %s AND status = 'En cours'
+        """, (book_id,))
+        existing_loan = cur.fetchone()
+
+        if existing_loan:
+            return jsonify({'error': 'This book is already on loan'}), 400
+
+        # Insert the new book loan into the database
+        cur.execute("""
+            INSERT INTO book_loans (user_id, book_id, loan_date, due_date, status)
+            VALUES (%s, %s, %s, %s, 'En cours')
+        """, (user_id, book_id, loan_date, due_date))
+
+        # Decrement the available copies for the book
+        cur.execute("""
+            UPDATE books
+            SET available_copies = available_copies - 1
+            WHERE book_id = %s
+        """, (book_id,))
+
+        # Commit the transaction
+        mysql.connection.commit()
+
+        # Close the cursor
+        cur.close()
+
+        # Return a success message
+        return jsonify({'message': 'Book loan added successfully'}), 201
+
+    except Exception as e:
+        print(f"Error adding book loan: {e}")
+        return jsonify({'error': 'Internal Server Error'}), 500
+
+@app.route('/user_book_loans/<int:user_id>', methods=['GET'])
+def get_user_book_loans(user_id):
+    try:
+        # Open a database cursor
+        cur = mysql.connection.cursor()
+
+        # Query to get all the books borrowed by the user, including book details
+        cur.execute("""
+            SELECT bl.loan_id, b.book_id, b.title, b.author, bl.loan_date, bl.due_date, bl.return_date, bl.status
+            FROM book_loans bl
+            JOIN books b ON bl.book_id = b.book_id
+            WHERE bl.user_id = %s
+            ORDER BY bl.loan_date DESC
+        """, (user_id,))
+
+        # Fetch the results
+        loans = cur.fetchall()
+
+        # Check if loans exist
+        if not loans:
+            return jsonify({'message': 'No books found for this user'}), 404
+
+        # Prepare the response data
+        loan_data = []
+        for loan in loans:
+            loan_data.append({
+                'loan_id': loan[0],
+                'book_id': loan[1],
+                'title': loan[2],
+                'author': loan[3],
+                'loan_date': loan[4].strftime('%Y-%m-%d'),
+                'due_date': loan[5].strftime('%Y-%m-%d'),
+                'return_date': loan[6].strftime('%Y-%m-%d') if loan[6] else None,
+                'status': loan[7]
+            })
+
+        # Close the cursor
+        cur.close()
+
+        # Return the loan data as a JSON response
+        return jsonify(loan_data), 200
+
+    except Exception as e:
+        print(f"Error retrieving user book loans: {e}")
+        return jsonify({'error': 'Internal Server Error'}), 500
+
+def insert_book_loans():
+    try:
+        # Open a database cursor
+        cur = mysql.connection.cursor()
+
+        # Book loan data to insert
+        book_loans = [
+            (1, 1, '2024-12-04', '2024-12-25', None, 'En cours'),
+        ]
+
+        # Insert each book loan into the database
+        cur.executemany("""
+            INSERT INTO book_loans (user_id, book_id, loan_date, due_date, return_date, status)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, book_loans)
+
+        # Commit the transaction
+        mysql.connection.commit()
+
+        # Close the cursor
+        cur.close()
+
+        print("Book loans data inserted successfully")
+
+    except Exception as e:
+        print(f"Error inserting book loans data: {e}")
 
 
 if __name__ == '__main__':
     # Insert books data into the database
     with app.app_context():
         insert_books_data()
-        # insert_book_synopses()
         insert_reviews_data()
+        insert_book_loans()
     # Run the Flask app
     app.run(host='localhost', port=30360)
 

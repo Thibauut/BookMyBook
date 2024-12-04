@@ -36,6 +36,7 @@ import {
   Switch,
   ScrollView,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { MyContext } from '../utils/Provider';
 
 

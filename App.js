@@ -8,6 +8,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import LoginScreen from './screens/LoginScreen';
 import HomeTabs from './screens/HomeScreen';
 import BookCardScreen from './screens/BookCardScreen';
+import BorrowedCardScreen from './screens/BorrowedCardScreen';
 import { MyProvider } from './utils/Provider';
 
 const Stack = createStackNavigator();
@@ -20,7 +21,8 @@ function App() {
         <Stack.Navigator >
           <Stack.Screen name="Login" component={LoginScreen} options={{headerShown: false, gestureEnabled: false}}/>
           <Stack.Screen name="HomeScreen" component={HomeTabs} options={{headerShown: false, gestureEnabled: false}}/>
-          <Stack.Screen name="BookCardScreen" component={BookCardScreen} options={{headerShown: false}} />
+          <Stack.Screen name="BookCardScreen" component={BookCardScreen} options={{headerShown: false, gestureEnabled: false}} />
+          <Stack.Screen name="BorrowedCardScreen" component={BorrowedCardScreen} options={{headerShown: false, gestureEnabled: false}} />
         </Stack.Navigator>
       </NavigationContainer>
     </MyProvider>

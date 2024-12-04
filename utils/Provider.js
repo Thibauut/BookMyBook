@@ -9,6 +9,8 @@ const MyProvider = ({ children }) => {
     topBooks: [], // Add a state for the top books
     reviews: [], // Add a state for reviews
     error: null, // To track errors
+    user: null, // To track the logged-in user
+    borrowedBooks: [], // To track the books borrowed by the
   });
 
   // Function to fetch all books and update the state
@@ -68,8 +70,35 @@ const MyProvider = ({ children }) => {
       });
   };
 
+  const handleLogin = (userData) => {
+    setData(prevState => ({
+      ...prevState,
+      user: userData,  // Store user data in the context
+    }));
+  };
+
+
+  const getUserBorrowedBooks = async (user_id) => {
+    const response = await axios.get(`http://localhost:30360/user_book_loans/${user_id}`);
+
+      if (response.status === 200) {
+        const loans = response.data; // Array of books borrowed by the user
+        if (loans.length === 0) {
+          Alert.alert('No Borrowed Books', 'This user has not borrowed any books.');
+        } else {
+          // Do something with the loans data
+          console.log('Borrowed Books:', loans);
+
+          setData(prevState => ({
+            ...prevState,
+            borrowedBooks: loans,  // Store borrowed books in the context
+          }));
+        }
+      }
+  };
+
   return (
-    <MyContext.Provider value={{ data, fetchBooks, fetchTopBooks, fetchReviews }}>
+    <MyContext.Provider value={{ data, fetchBooks, fetchTopBooks, fetchReviews, handleLogin, getUserBorrowedBooks }}>
       {children}
     </MyContext.Provider>
   );

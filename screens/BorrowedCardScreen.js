@@ -16,13 +16,13 @@ import {StyleSheet,
 import { useEffect } from 'react';
 import { Buffer } from 'buffer';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-
+import { Barcode } from 'expo-barcode-generator';
 import { useNavigation } from '@react-navigation/native';
 import { AppRegistry } from 'react-native';
 import { MyContext } from '../utils/Provider';
 
-const BookCardScreen = ({ route }) => {
-  const { bookInfo } = route.params;
+const BorrowedCardScreen = ({ route }) => {
+  const { bookInfo, borrowedDate, dueDate } = route.params;
   const { data, fetchBooks } = useContext(MyContext); // Accessing context
   const navigation = useNavigation();
 
@@ -30,54 +30,25 @@ const BookCardScreen = ({ route }) => {
     navigation.goBack();
   };
 
-  const handleBorrowPress = async () => {
-    console.log(bookInfo.id);
-    try {
-      const user_id = data.user.id;
-      const book_id = bookInfo.id;
-      const loan_date = new Date().toISOString().split('T')[0];
-      const due_date = new Date();
-      due_date.setDate(due_date.getDate() + 14);
-      const due_date_str = due_date.toISOString().split('T')[0];
-
-      const response = await axios.post('http://localhost:30360/book_loans', {
-        user_id,
-        book_id,
-        loan_date,
-        due_date: due_date_str,
-      });
-
-      if (response.status === 201) {
-        Alert.alert('Success', 'You have successfully borrowed the book!');
-      }
-    } catch (error) {
-      // Handle specific error for book already on loan
-      if (error.response && error.response.data && error.response.data.error === 'This book is already on loan') {
-        Alert.alert('Error', 'This book is already on loan.');
-      } else {
-        Alert.alert('Error', 'Failed to borrow the book. Please try again.');
-      }
-    }
-    fetchBooks();
-  };
-
+  
   const getUserBorrowedBooks = async (user_id) => {
     const response = await axios.get(`http://localhost:30360/user_book_loans/${user_id}`);
-  
+    
       if (response.status === 200) {
         const loans = response.data; // Array of books borrowed by the user
         if (loans.length === 0) {
           Alert.alert('No Borrowed Books', 'This user has not borrowed any books.');
         } else {
-          // Do something with the loans data
+            // Do something with the loans data
           console.log('Borrowed Books:', loans);
         }
       }
   };
-
-  const handleToReadPress = () => {
+  
+  useEffect(() => {
+    console.log(dueDate);
     getUserBorrowedBooks(data.user.id);
-  };
+  }, []);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#fff'}}>
@@ -119,32 +90,62 @@ const BookCardScreen = ({ route }) => {
             <Text
                     style={{
                       fontSize: 17,
-                      marginBottom: '1%',
+                      marginBottom: '4%',
                       textAlign: 'center',
                     }}
                   >
             {bookInfo.author}</Text>
             <Text
                     style={{
-                      fontSize: 18,
-                      marginBottom: '5%',
+                      fontSize: 15,
+                      marginBottom: '2%',
                       textAlign: 'center',
                       fontWeight: 'bold',
                     }}
                   >
-            Released in {bookInfo.publication_year}</Text>
+            Borrowed Date: {borrowedDate}</Text>
             <Text
-                    style={{
-                      fontSize: 15,
-                      marginBottom: '2%',
-                      textAlign: 'center',
-                    }}
+                style={{
+                    fontSize: 15,
+                    marginBottom: '2%',
+                    textAlign: 'center',
+                    fontWeight: 'bold',
+                }}
                   >
-            {bookInfo.synopsis}</Text>
+            Due Date: {dueDate}</Text>
+        <View style={styles.containerCode}>
+            <Barcode
+                value="123456789012"
+                options={{
+                    format: 'UPC',
+                    background: '#fff',
+                    displayValue: false,
+                    height: 50,
+                }}
+            />
+        </View>
+    <Text
+        style={{
+            fontSize: 15,
+            marginBottom: '5%',
+            textAlign: 'center',
+            fontWeight: 'bold',
+        }}
+        >
+        {bookInfo.isbn}</Text>
 
-            <View 
+        <Text
+        style={{
+            fontSize: 15,
+            marginBottom: '1%',
+            textAlign: 'center',
+            fontWeight: 'medium',
+        }}
+        >
+        Show this barcode to pickup your Book</Text>
+
+    <View
       style={{
-        flexDirection: 'row',
         justifyContent: 'space-between',
         width: '100%',
         padding: '5%',
@@ -154,25 +155,13 @@ const BookCardScreen = ({ route }) => {
         justifyContent: 'center',
       }}
     >
-      {bookInfo.available_copies === 0 ? (
-        // If available_copies is 0, show the "Unavailable" button
-        <TouchableOpacity style={styles.unavailable}>
-          <Text style={{ fontWeight: 'bold', fontSize: 15, color: '#fff' }}>
-            Unavailable
-          </Text>
+        <TouchableOpacity style={styles.loginBtn}
+        // onPress={handleBorrowPress}
+        >
+        <Text style={{ fontWeight: 'bold', fontSize: 15, color: '#fff' }}>
+            Cancel
+        </Text>
         </TouchableOpacity>
-      ) : (
-        // Otherwise, show the "Borrow" and "To Read" buttons
-        <>
-          <TouchableOpacity style={styles.loginBtn}
-            onPress={handleBorrowPress}
-          >
-            <Text style={{ fontWeight: 'bold', fontSize: 15, color: '#fff' }}>
-              Borrow
-            </Text>
-          </TouchableOpacity>
-        </>
-      )}
     </View>
           </View>
 
@@ -184,6 +173,12 @@ const BookCardScreen = ({ route }) => {
 };
 
 const styles = StyleSheet.create({
+    containerCode: {
+        // flex: 1,             // Use full screen height and width
+        alignItems: 'center', // Horizontally center the barcode
+        justifyContent: 'center', // Vertically center the barcode
+        marginTop: 1,
+      },
   bookImage: {
     width: 200,
     height: 290,
@@ -193,13 +188,13 @@ const styles = StyleSheet.create({
   },
 
   loginBtn: {
-    width: "65%",
+    width: "45%",
     borderRadius: 9,
     height: '100%',
     alignItems: "center",
     justifyContent: "center",
-    marginTop: '10%',
-    backgroundColor: "#82a3ff",
+    marginTop: '7%',
+    backgroundColor: "#ffa0a0",
     alignSelf: 'center',
   },
 
@@ -267,4 +262,4 @@ const styles = StyleSheet.create({
 
 });
 
-export default BookCardScreen;
+export default BorrowedCardScreen;
