@@ -51,13 +51,28 @@ const ProfileScreen = () => {
     }, [])
   );
 
+  function getBorrowedByBookID(bookID) {
+    const book = data.borrowedBooks.find(borrowed => borrowed.book_id === bookID);
+
+    if (book) {
+        // console.log(`Details for Book ID ${bookID}:`, book);
+        return book;
+    } else {
+        // console.warn(`No book found with Book ID: ${bookID}`);
+        return null;
+    }
+}
+
   const onItemClick = (bookInfo) => {
-    console.log(data.borrowedBooks[bookInfo.id - 1].due_date);
+    const borrowedDetails = getBorrowedByBookID(bookInfo.id);
+
+    console.log('Borrowed Details:', borrowedDetails);
     navigation.navigate('BorrowedCardScreen', {
       bookInfo,
-      borrowedDate: data.borrowedBooks[bookInfo.id - 1]?.loan_date,
-      dueDate: data.borrowedBooks[bookInfo.id - 1]?.due_date,
-    });
+      borrowedDate: borrowedDetails.loan_date,
+      dueDate: borrowedDetails.due_date,
+    }
+  );
 
   };
 
@@ -214,14 +229,9 @@ const ProfileScreen = () => {
           }}
           style={{ height: 10}} // Set a fixed height for the ScrollView
         >
-        {data.borrowedBooks.map((book, index) => {
-            const bookInfo = data.books[book.book_id - 1];
-            if (!bookInfo) {
-                console.warn(`No book info found for book_id: ${book.book_id}`);
-                return null;
-            }
-            return <BookItem key={index} bookInfo={bookInfo} />;
-        })}
+          {data.borrowedBooks.map((book, index) => (
+            <BookItem key={index} bookInfo={data.books[book.book_id - 1]} />
+          ))}
         </ScrollView>
       )}
     </View>
