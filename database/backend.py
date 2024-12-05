@@ -7,8 +7,8 @@ from datetime import datetime
 
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
-app.secret_key = 'root'  # Replace with a strong secret key
+CORS(app)
+app.secret_key = 'root'
 
 # MySQL Configuration
 app.config['MYSQL_HOST'] = 'localhost'
@@ -17,12 +17,8 @@ app.config['MYSQL_PASSWORD'] = 'azerty123'
 app.config['MYSQL_DB'] = 'bookmybook'
 mysql = MySQL(app)
 
-
-# Function to insert books data into the MySQL database
-
 def insert_books_data():
     try:
-        # List of books and their corresponding image paths
         books_data = [
             ('978-2-1234-5678-9', 'Le Petit Prince', 'Antoine de Saint-Exupéry', 1943, 'Conte', 10, 8, 'assets/le_petit_prince.jpg', 'A heartwarming tale of a young prince who travels from planet to planet, learning valuable life lessons about love, friendship, and the importance of seeing beyond the surface of things.'),
             ('978-2-9876-5432-1', '1984', 'George Orwell', 1949, 'Science', 5, 3, 'assets/george_orwell.jpg', 'A dystopian novel set in a totalitarian society where the government maintains control through surveillance, manipulation of language, and the suppression of individual thought.'),
@@ -63,18 +59,11 @@ def insert_books_data():
             ('978-0-593-31167-2', 'The Invisible Life of Addie LaRue', 'V.E. Schwab', 2020, 'Fantasy', 7, 4, 'assets/the_invisible_life_of_addie_larue.jpg', 'A unique fantasy about a woman who makes a Faustian bargain to live forever but is cursed to be forgotten by everyone she meets.' ),
             ('978-0-593-31166-5', 'Mexican Gothic', 'Silvia Moreno-Garcia', 2020, 'Horror', 5, 2, 'assets/mexican_gothic.jpg', 'A gothic horror novel set in 1950s Mexico, exploring family secrets, colonialism, and supernatural forces in a decaying mansion.')
         ]
-
-        # Loop through each book and insert data
         for book in books_data:
             isbn, title, author, publication_year, genre, total_copies, available_copies, image_path, synopsis = book
-            # Read the image file as binary
             with open(image_path, "rb") as file:
                 binary_data = file.read()
-
-            # Using MySQLdb connection to insert the data
             cur = mysql.connection.cursor()
-
-            # Use ON DUPLICATE KEY UPDATE to update existing records
             cur.execute("""
                 INSERT INTO books (isbn, title, author, publication_year, genre, total_copies, available_copies, cover_image, cover_image_binary, synopsis)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -89,48 +78,33 @@ def insert_books_data():
                     cover_image_binary = VALUES(cover_image_binary),
                     synopsis = VALUES(synopsis)
             """, (isbn, title, author, publication_year, genre, total_copies, available_copies, image_path, binary_data, synopsis))
-
-            # Commit after each insert to avoid large transactions
             mysql.connection.commit()
-
         print("Books data inserted successfully")
-
     except Exception as e:
         print(f"Error inserting books data: {e}")
 
 @app.route('/login', methods=['POST'])
-
 def login():
     try:
         data = request.json
         print("Données reçues:", data)
-
         email = data.get('email')
         password = data.get('password')
-
-        # Open a database cursor
         cur = mysql.connection.cursor()
-
-        # Updated SQL query to fetch user details
         cur.execute("""
             SELECT user_id, username, password, first_name, last_name, email, registration_date 
             FROM users 
             WHERE email = %s
         """, (email,))
-
         user = cur.fetchone()
         cur.close()
 
         if user:
             stored_password = user[2]
-            # Convertir le mot de passe en bytes si nécessaire
             if isinstance(stored_password, str):
                 stored_password = stored_password.encode('utf-8')
-            # Vérification du mot de passe
             try:
-                # Vérifier le mot de passe en texte brut ou avec bcrypt
                 if stored_password == password.encode('utf-8'):
-                    # Mot de passe en texte brut
                     return jsonify({
                         'message': 'Login successful', 
                         'user': {
@@ -139,11 +113,10 @@ def login():
                             'first_name': user[3],
                             'last_name': user[4],
                             'email': user[5],
-                            'registration_date': user[6].strftime('%Y-%m-%d %H:%M:%S')  # Format the date
+                            'registration_date': user[6].strftime('%Y-%m-%d %H:%M:%S')
                         }
                     })
                 elif bcrypt.checkpw(password.encode('utf-8'), stored_password):
-                    # Mot de passe haché bcrypt
                     return jsonify({
                         'message': 'Login successful', 
                         'user': {
@@ -152,7 +125,7 @@ def login():
                             'first_name': user[3],
                             'last_name': user[4],
                             'email': user[5],
-                            'registration_date': user[6].strftime('%Y-%m-%d %H:%M:%S')  # Format the date
+                            'registration_date': user[6].strftime('%Y-%m-%d %H:%M:%S')
                         }
                     })
                 else:
@@ -166,7 +139,6 @@ def login():
         print(f"Error: {e}")
         return jsonify({'error': 'Internal Server Error'}), 500
 
-
 @app.route('/logout', methods=['POST'])
 def logout():
     session.pop('user_id', None)
@@ -175,31 +147,21 @@ def logout():
 @app.route('/allbooks', methods=['POST'])
 def get_all_books():
     try:
-        # Open a database cursor
         cur = mysql.connection.cursor()
-
-        # Execute the query to get all books, including the binary data of the cover image and book id
         cur.execute("""
             SELECT book_id, isbn, title, author, publication_year, genre, total_copies, available_copies, cover_image, cover_image_binary, synopsis
             FROM books
         """)
-
-        # Fetch all the rows
         books = cur.fetchall()
-
-        # Close the cursor
         cur.close()
-
-        # Format the books data into a list of dictionaries
         books_list = []
         for book in books:
-            # Convert the binary image data to a base64 string if it exists
             cover_image_base64 = None
-            if book[9]:  # Check if binary data exists
+            if book[9]:
                 cover_image_base64 = base64.b64encode(book[9]).decode('utf-8')
 
             books_list.append({
-                'id': book[0],  # Add book id (assuming book_id is the first column in the table)
+                'id': book[0],
                 'isbn': book[1],
                 'title': book[2],
                 'author': book[3],
@@ -207,14 +169,11 @@ def get_all_books():
                 'genre': book[5],
                 'total_copies': book[6],
                 'available_copies': book[7],
-                'cover_image': book[8],  # Path or URL of the image
-                'cover_image_binary': cover_image_base64,  # Base64 encoded binary image
+                'cover_image': book[8],
+                'cover_image_binary': cover_image_base64,
                 'synopsis': book[10]
             })
-
-        # Return the books as JSON response
         return jsonify({'books': books_list})
-
     except Exception as e:
         print(f"Error retrieving books: {e}")
         return jsonify({'error': 'Internal Server Error'}), 500
@@ -222,31 +181,20 @@ def get_all_books():
 @app.route('/topbooks', methods=['GET'])
 def get_top_books():
     try:
-        # Open a database cursor
         cur = mysql.connection.cursor()
-
-        # Execute the query to get the books with the least availability
         cur.execute("""
             SELECT isbn, title, author, publication_year, genre, total_copies, available_copies, cover_image, cover_image_binary
             FROM books
             ORDER BY available_copies ASC
             LIMIT 7
         """)
-
-        # Fetch the top 4 books
         books = cur.fetchall()
-
-        # Close the cursor
         cur.close()
-
-        # Format the books data into a list of dictionaries
         books_list = []
         for book in books:
-            # Convert the binary image data to a base64 string if it exists
             cover_image_base64 = None
-            if book[8]:  # Check if binary data exists
+            if book[8]:
                 cover_image_base64 = base64.b64encode(book[8]).decode('utf-8')
-
             books_list.append({
                 'isbn': book[0],
                 'title': book[1],
@@ -255,23 +203,17 @@ def get_top_books():
                 'genre': book[4],
                 'total_copies': book[5],
                 'available_copies': book[6],
-                'cover_image': book[7],  # Path or URL of the image
-                'cover_image_binary': cover_image_base64  # Base64 encoded binary image
+                'cover_image': book[7],
+                'cover_image_binary': cover_image_base64
             })
-
-        # Return the top 4 books as a JSON response
         return jsonify({'top_books': books_list})
-
     except Exception as e:
         print(f"Error retrieving top books: {e}")
         return jsonify({'error': 'Internal Server Error'}), 500
 
 def insert_reviews_data():
     try:
-        # Open a database cursor
         cur = mysql.connection.cursor()
-
-        # Insert review data
         reviews = [
             (1, 1, 5, 'An amazing and timeless story about love and friendship.'),
             (2, 14, 4, 'A chilling portrayal of totalitarianism and surveillance, very thought-provoking.'),
@@ -284,59 +226,40 @@ def insert_reviews_data():
             (1, 26, 2, 'Not my favorite, but still an interesting story about psychological tension.'),
             (2, 10, 5, 'A beautifully written and emotional novel.')
         ]
-        # Insert each review into the database
         cur.executemany("""
             INSERT INTO book_reviews (user_id, book_id, rating, review_text)
             VALUES (%s, %s, %s, %s)
         """, reviews)
-
-        # Commit the transaction
         mysql.connection.commit()
-
-        # Close the cursor
         cur.close()
-
         print("Reviews data inserted successfully")
-
     except Exception as e:
         print(f"Error inserting reviews data: {e}")
 
 @app.route('/reviews', methods=['GET'])
 def get_reviews():
     try:
-        # Open a database cursor
         cur = mysql.connection.cursor()
-
-        # Execute the query to get all reviews along with book_id
         cur.execute("""
             SELECT br.review_id, u.username, b.title, br.book_id, br.rating, br.review_text, br.review_date
             FROM book_reviews br
             JOIN users u ON br.user_id = u.user_id
             JOIN books b ON br.book_id = b.book_id
         """)
-
-        # Fetch all the rows
         reviews = cur.fetchall()
-
-        # Close the cursor
         cur.close()
-
-        # Format the reviews data into a list of dictionaries
         reviews_list = []
         for review in reviews:
             reviews_list.append({
                 'review_id': review[0],
                 'username': review[1],
                 'book_title': review[2],
-                'book_id': review[3],  # Include book_id in the response
+                'book_id': review[3],
                 'rating': review[4],
                 'review_text': review[5],
-                'review_date': review[6].strftime('%Y-%m-%d %H:%M:%S')  # Format date if needed
+                'review_date': review[6].strftime('%Y-%m-%d %H:%M:%S')
             })
-
-        # Return the reviews as JSON response
         return jsonify({'reviews': reviews_list})
-
     except Exception as e:
         print(f"Error retrieving reviews: {e}")
         return jsonify({'error': 'Internal Server Error'}), 500
@@ -344,26 +267,17 @@ def get_reviews():
 @app.route('/book_loans', methods=['POST'])
 def add_book_loan():
     try:
-        # Get data from the POST request
         data = request.get_json()
-
-        # Validate required fields
         user_id = data.get('user_id')
         book_id = data.get('book_id')
-        loan_date = data.get('loan_date')  # Expected format: 'YYYY-MM-DD'
-        due_date = data.get('due_date')    # Expected format: 'YYYY-MM-DD'
+        loan_date = data.get('loan_date')
+        due_date = data.get('due_date')
 
         if not user_id or not book_id or not loan_date or not due_date:
             return jsonify({'error': 'Missing required fields'}), 400
-
-        # Convert dates to datetime objects
         loan_date = datetime.strptime(loan_date, '%Y-%m-%d')
         due_date = datetime.strptime(due_date, '%Y-%m-%d')
-
-        # Open a database cursor
         cur = mysql.connection.cursor()
-
-        # Check if the book exists and has available copies
         cur.execute("SELECT available_copies FROM books WHERE book_id = %s", (book_id,))
         book = cur.fetchone()
 
@@ -373,8 +287,6 @@ def add_book_loan():
 
         if available_copies <= 0:
             return jsonify({'error': 'No available copies of this book'}), 400
-
-        # Check if the book is already on loan (status 'En cours')
         cur.execute("""
             SELECT loan_id FROM book_loans
             WHERE book_id = %s AND status = 'En cours'
@@ -384,28 +296,19 @@ def add_book_loan():
         if existing_loan:
             return jsonify({'error': 'This book is already on loan'}), 400
 
-        # Insert the new book loan into the database
         cur.execute("""
             INSERT INTO book_loans (user_id, book_id, loan_date, due_date, status)
             VALUES (%s, %s, %s, %s, 'En cours')
         """, (user_id, book_id, loan_date, due_date))
 
-        # Decrement the available copies for the book
         cur.execute("""
             UPDATE books
             SET available_copies = available_copies - 1
             WHERE book_id = %s
         """, (book_id,))
-
-        # Commit the transaction
         mysql.connection.commit()
-
-        # Close the cursor
         cur.close()
-
-        # Return a success message
         return jsonify({'message': 'Book loan added successfully'}), 201
-
     except Exception as e:
         print(f"Error adding book loan: {e}")
         return jsonify({'error': 'Internal Server Error'}), 500
@@ -414,20 +317,12 @@ def add_book_loan():
 @app.route('/delete_book_loan', methods=['DELETE'])
 def delete_book_loan():
     try:
-        # Get data from the DELETE request
         data = request.get_json()
-
-        # Validate required field (loan_id)
         loan_id = data.get('loan_id')
-        user_id = data.get('user_id')  # Ensure user_id is provided to check for the user
-
+        user_id = data.get('user_id')
         if not loan_id or not user_id:
             return jsonify({'error': 'Missing loan_id or user_id'}), 400
-
-        # Open a database cursor
         cur = mysql.connection.cursor()
-
-        # Check if the loan exists and belongs to the user
         cur.execute("""
             SELECT loan_id, book_id, user_id, status FROM book_loans
             WHERE loan_id = %s
@@ -436,40 +331,27 @@ def delete_book_loan():
 
         if not loan:
             return jsonify({'error': 'Loan not found'}), 404
-        
-        # Check if the loan belongs to the user
+
         if loan[2] != user_id:
             return jsonify({'error': 'This loan does not belong to the specified user'}), 400
 
-        # Check if the loan status is 'En cours' (currently on loan)
         if loan[3] != 'En cours':
             return jsonify({'error': 'This loan is not in progress or already returned'}), 400
-
-        # Get the book_id associated with the loan
         book_id = loan[1]
 
-        # Delete the loan record from the book_loans table
         cur.execute("""
             DELETE FROM book_loans
             WHERE loan_id = %s
         """, (loan_id,))
 
-        # Increment the available copies for the book
         cur.execute("""
             UPDATE books
             SET available_copies = available_copies + 1
             WHERE book_id = %s
         """, (book_id,))
-
-        # Commit the transaction
         mysql.connection.commit()
-
-        # Close the cursor
         cur.close()
-
-        # Return a success message
         return jsonify({'message': 'Book loan deleted successfully'}), 200
-
     except Exception as e:
         print(f"Error deleting book loan: {e}")
         return jsonify({'error': 'Internal Server Error'}), 500
@@ -477,10 +359,7 @@ def delete_book_loan():
 @app.route('/user_book_loans/<int:user_id>', methods=['GET'])
 def get_user_book_loans(user_id):
     try:
-        # Open a database cursor
         cur = mysql.connection.cursor()
-
-        # Query to get all the books borrowed by the user, including book details
         cur.execute("""
             SELECT bl.loan_id, b.book_id, b.title, b.author, bl.loan_date, bl.due_date, bl.return_date, bl.status
             FROM book_loans bl
@@ -488,15 +367,9 @@ def get_user_book_loans(user_id):
             WHERE bl.user_id = %s
             ORDER BY bl.loan_date DESC
         """, (user_id,))
-
-        # Fetch the results
         loans = cur.fetchall()
-
-        # Check if loans exist
         if not loans:
             return jsonify({'message': 'No books found for this user'}), 404
-
-        # Prepare the response data
         loan_data = []
         for loan in loans:
             loan_data.append({
@@ -509,37 +382,23 @@ def get_user_book_loans(user_id):
                 'return_date': loan[6].strftime('%Y-%m-%d') if loan[6] else None,
                 'status': loan[7]
             })
-
-        # Close the cursor
         cur.close()
-
-        # Return the loan data as a JSON response
         return jsonify(loan_data), 200
-
     except Exception as e:
         print(f"Error retrieving user book loans: {e}")
         return jsonify({'error': 'Internal Server Error'}), 500
 
 def insert_book_loans():
     try:
-        # Open a database cursor
         cur = mysql.connection.cursor()
-
-        # Book loan data to insert
         book_loans = [
             (1, 1, '2024-12-04', '2024-12-25', None, 'En cours'),
         ]
-
-        # Insert each book loan into the database
         cur.executemany("""
             INSERT INTO book_loans (user_id, book_id, loan_date, due_date, return_date, status)
             VALUES (%s, %s, %s, %s, %s, %s)
         """, book_loans)
-
-        # Commit the transaction
         mysql.connection.commit()
-
-        # Close the cursor
         cur.close()
 
         print("Book loans data inserted successfully")
@@ -549,11 +408,9 @@ def insert_book_loans():
 
 
 if __name__ == '__main__':
-    # Insert books data into the database
     with app.app_context():
         insert_books_data()
         insert_reviews_data()
-        # insert_book_loans()
     # Run the Flask app
     app.run(host='localhost', port=30360)
 
