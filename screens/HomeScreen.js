@@ -127,7 +127,7 @@ const HomeScreen = () => {
         <ScrollView contentContainerStyle={styles.container2}
           showsVerticalScrollIndicator={false}
         >
-          {data.reviews.map((review) => (
+          {data.reviews?.map((review) => (
 
             <View key={review.review_id} style={styles.reviewItem}>
               <View style={{

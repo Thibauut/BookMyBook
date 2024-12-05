@@ -19,7 +19,7 @@ const MyProvider = ({ children }) => {
       .then(response => {
         setData(prevState => ({
           ...prevState,
-          books: response.data.books, // Update books in the context
+          books: response.data?.books, // Update books in the context
           error: null,                // Clear any previous errors
         }));
       })
@@ -38,7 +38,7 @@ const MyProvider = ({ children }) => {
       .then(response => {
         setData(prevState => ({
           ...prevState,
-          topBooks: response.data.top_books, // Update topBooks in the context
+          topBooks: response.data?.top_books, // Update topBooks in the context
           error: null,                      // Clear any previous errors
         }));
       })
@@ -57,7 +57,7 @@ const MyProvider = ({ children }) => {
       .then(response => {
         setData(prevState => ({
           ...prevState,
-          reviews: response.data.reviews, // Update reviews in the context
+          reviews: response.data?.reviews, // Update reviews in the context
           error: null,                    // Clear any previous errors
         }));
       })
@@ -79,26 +79,57 @@ const MyProvider = ({ children }) => {
 
 
   const getUserBorrowedBooks = async (user_id) => {
-    const response = await axios.get(`http://localhost:30360/user_book_loans/${user_id}`);
-
+    try {
+      const response = await axios.get(`http://localhost:30360/user_book_loans/${user_id}`);
+  
       if (response.status === 200) {
         const loans = response.data; // Array of books borrowed by the user
-        if (loans.length === 0) {
+        if (loans?.length === 0) {
           Alert.alert('No Borrowed Books', 'This user has not borrowed any books.');
         } else {
-          // Do something with the loans data
-          console.log('Borrowed Books:', loans);
-
+          // Only set the data if there are loans
           setData(prevState => ({
             ...prevState,
             borrowedBooks: loans,  // Store borrowed books in the context
           }));
         }
       }
+    } catch (error) {
+      // Handle the error case
+      if (error.response && error.response.status === 404) {
+        // Handle 404 specifically (no books found for the user)
+        console.log('No borrowed books found for this user.');
+        setData(prevState => ({
+          ...prevState,
+            borrowedBooks: [],  // This can also be an empty array or leave it unchanged
+          }));
+      } else {
+        // Handle other errors (network error, server error, etc.)
+        console.error('Error fetching borrowed books:', error.message);
+      }
+      // Optionally, you can choose not to set any data in case of an error.
+      setData(prevState => ({
+        ...prevState,
+        borrowedBooks: [],  // This can also be an empty array or leave it unchanged
+      }));
+    }
+  };
+
+
+  const Logout = async () => {
+    const response = await axios.post('http://localhost:30360/logout');
+    if (response.status === 200) {
+      // Logout successful, clear user data in context or state
+      // Alert.alert('Logged out', 'You have successfully logged out.');
+
+      // Redirect to login screen (using React Navigation)
+    } else {
+      // Alert.alert('Error', 'Failed to log out. Please try again.');
+    }
   };
 
   return (
-    <MyContext.Provider value={{ data, fetchBooks, fetchTopBooks, fetchReviews, handleLogin, getUserBorrowedBooks }}>
+    <MyContext.Provider value={{ data, fetchBooks, fetchTopBooks, fetchReviews, handleLogin, getUserBorrowedBooks, Logout }}>
       {children}
     </MyContext.Provider>
   );

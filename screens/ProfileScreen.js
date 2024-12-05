@@ -27,32 +27,23 @@ import { useFocusEffect } from '@react-navigation/native';
 
 
 const ProfileScreen = () => {
-  const {data, getUserBorrowedBooks } = useContext(MyContext);
+  const {data, getUserBorrowedBooks, Logout } = useContext(MyContext);
 
   const navigation = useNavigation();
 
   const handleLogout = async () => {
-    const response = await axios.post('http://localhost:30360/logout');
-    if (response.status === 200) {
-      // Logout successful, clear user data in context or state
-      setData({ user: null }); // Assuming you're using context for user data
-      Alert.alert('Logged out', 'You have successfully logged out.');
-
-      // Redirect to login screen (using React Navigation)
-      navigation.navigate('Login'); // Adjust to your navigation stack
-    } else {
-      Alert.alert('Error', 'Failed to log out. Please try again.');
-    }
+    Logout();
+    navigation.navigate('Login'); // Adjust to your navigation stack
   };
 
   useFocusEffect(
     React.useCallback(() => {
-      getUserBorrowedBooks(data.user.id); // Call this when HomeScreen is focused
+      getUserBorrowedBooks(data?.user.id); // Call this when HomeScreen is focused
     }, [])
   );
 
   function getBorrowedByBookID(bookID) {
-    const book = data.borrowedBooks.find(borrowed => borrowed.book_id === bookID);
+    const book = data?.borrowedBooks.find(borrowed => borrowed.book_id === bookID);
 
     if (book) {
         // console.log(`Details for Book ID ${bookID}:`, book);
@@ -71,6 +62,8 @@ const ProfileScreen = () => {
       bookInfo,
       borrowedDate: borrowedDetails.loan_date,
       dueDate: borrowedDetails.due_date,
+      loanID: borrowedDetails.loan_id,
+      userID: data?.user?.id,
     }
   );
 
@@ -166,10 +159,10 @@ const ProfileScreen = () => {
         <View style={styles.profileContainer}>
         <View style={styles.profileInfo}>
           <Text style={styles.nameText}>
-            {data.user.first_name} {data.user.last_name}
+            {data?.user?.first_name} {data?.user?.last_name}
           </Text>
           <Text style={styles.emailText}>
-            {data.user.email}
+            {data?.user?.email}
           </Text>
         </View>
         {/* Logout Icon */}
@@ -210,12 +203,12 @@ const ProfileScreen = () => {
             fontWeight: 'bold',
           }}
         >
-          ({data.borrowedBooks.length})
+          ({data?.borrowedBooks?.length})
         </Text>
       </View>
       <View style={{ flex: 1}}>
-      {data.borrowedBooks.length === 0 ? (
-        <Text style={{ fontSize: 18, color: '#333', marginTop: 20 }}>
+      {data?.borrowedBooks?.length === 0 ? (
+        <Text style={{ fontSize: 18, color: '#333', marginTop: 100 , alignSelf: 'center'}}>
           No books borrowed yet
         </Text>
       ) : (
@@ -229,8 +222,8 @@ const ProfileScreen = () => {
           }}
           style={{ height: 10}} // Set a fixed height for the ScrollView
         >
-          {data.borrowedBooks.map((book, index) => (
-            <BookItem key={index} bookInfo={data.books[book.book_id - 1]} />
+          {data?.borrowedBooks?.map((book, index) => (
+            <BookItem key={index} bookInfo={data?.books[book.book_id - 1]} />
           ))}
         </ScrollView>
       )}

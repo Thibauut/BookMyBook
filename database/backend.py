@@ -410,6 +410,70 @@ def add_book_loan():
         print(f"Error adding book loan: {e}")
         return jsonify({'error': 'Internal Server Error'}), 500
 
+
+@app.route('/delete_book_loan', methods=['DELETE'])
+def delete_book_loan():
+    try:
+        # Get data from the DELETE request
+        data = request.get_json()
+
+        # Validate required field (loan_id)
+        loan_id = data.get('loan_id')
+        user_id = data.get('user_id')  # Ensure user_id is provided to check for the user
+
+        if not loan_id or not user_id:
+            return jsonify({'error': 'Missing loan_id or user_id'}), 400
+
+        # Open a database cursor
+        cur = mysql.connection.cursor()
+
+        # Check if the loan exists and belongs to the user
+        cur.execute("""
+            SELECT loan_id, book_id, user_id, status FROM book_loans
+            WHERE loan_id = %s
+        """, (loan_id,))
+        loan = cur.fetchone()
+
+        if not loan:
+            return jsonify({'error': 'Loan not found'}), 404
+        
+        # Check if the loan belongs to the user
+        if loan[2] != user_id:
+            return jsonify({'error': 'This loan does not belong to the specified user'}), 400
+
+        # Check if the loan status is 'En cours' (currently on loan)
+        if loan[3] != 'En cours':
+            return jsonify({'error': 'This loan is not in progress or already returned'}), 400
+
+        # Get the book_id associated with the loan
+        book_id = loan[1]
+
+        # Delete the loan record from the book_loans table
+        cur.execute("""
+            DELETE FROM book_loans
+            WHERE loan_id = %s
+        """, (loan_id,))
+
+        # Increment the available copies for the book
+        cur.execute("""
+            UPDATE books
+            SET available_copies = available_copies + 1
+            WHERE book_id = %s
+        """, (book_id,))
+
+        # Commit the transaction
+        mysql.connection.commit()
+
+        # Close the cursor
+        cur.close()
+
+        # Return a success message
+        return jsonify({'message': 'Book loan deleted successfully'}), 200
+
+    except Exception as e:
+        print(f"Error deleting book loan: {e}")
+        return jsonify({'error': 'Internal Server Error'}), 500
+
 @app.route('/user_book_loans/<int:user_id>', methods=['GET'])
 def get_user_book_loans(user_id):
     try:
@@ -489,7 +553,7 @@ if __name__ == '__main__':
     with app.app_context():
         insert_books_data()
         insert_reviews_data()
-        insert_book_loans()
+        # insert_book_loans()
     # Run the Flask app
     app.run(host='localhost', port=30360)
 

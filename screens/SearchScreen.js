@@ -12,6 +12,8 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { MyContext } from '../utils/Provider';
 import BookCardScreen from './BookCardScreen';
+import { useFocusEffect } from '@react-navigation/native';
+
 
 const SearchScreen = () => {
   const { data, fetchBooks } = useContext(MyContext); // Accessing context
@@ -21,10 +23,10 @@ const SearchScreen = () => {
 
   // Sync filteredBooks with fetched data initially
   useEffect(() => {
-    if (data.books) {
-      setFilteredBooks(data.books); // Copy data to filteredBooks
+    if (data?.books) {
+      setFilteredBooks(data?.books); // Copy data to filteredBooks
     }
-  }, [data.books]);
+  }, [data?.books]);
 
   // Function to handle search query updates
   const handleSearch = text => {
@@ -32,7 +34,7 @@ const SearchScreen = () => {
 
     const lowerCaseQuery = text.toLowerCase();
 
-    const newFilteredBooks = data.books.filter(book =>
+    const newFilteredBooks = data?.books.filter(book =>
       book.title.toLowerCase().includes(lowerCaseQuery)
     );
 
@@ -121,26 +123,26 @@ const SearchScreen = () => {
                 marginBottom: '-4%',
               }}
             >
-              {bookInfo.available_copies > 0
-                ? `Available: ${bookInfo.available_copies}`
+              {bookInfo?.available_copies > 0
+                ? `Available: ${bookInfo?.available_copies}`
                 : 'Unavailable'}
             </Text>
           </View>
           <View
             style={{
               width:
-                bookInfo.genre.length <= 5
+                bookInfo?.genre?.length <= 5
                   ? '30%'
-                  : bookInfo.genre.length < 9
+                  : bookInfo?.genre?.length < 9
                   ? '33%'
-                  : bookInfo.genre.length > 11
+                  : bookInfo?.genre?.length > 11
                   ? '45%'
                   : '40%',
               borderRadius: 5,
               height: '15%',
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: getGenreColor(bookInfo.genre),
+              backgroundColor: getGenreColor(bookInfo?.genre),
               marginLeft: '8%',
             }}
           >
@@ -151,7 +153,7 @@ const SearchScreen = () => {
                 fontWeight: 'bold',
               }}
             >
-              {bookInfo.genre}
+              {bookInfo?.genre}
             </Text>
           </View>
         </View>
@@ -189,7 +191,7 @@ const SearchScreen = () => {
         onChangeText={handleSearch}
       />
       <ScrollView contentContainerStyle={styles.container2}>
-      {filteredBooks.map((bookInfo, index) => (
+      {filteredBooks?.map((bookInfo, index) => (
         <BookItem key={index} bookInfo={bookInfo} />
       ))}
       </ScrollView>

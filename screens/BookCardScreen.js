@@ -23,7 +23,7 @@ import { MyContext } from '../utils/Provider';
 
 const BookCardScreen = ({ route }) => {
   const { bookInfo } = route.params;
-  const { data, fetchBooks } = useContext(MyContext); // Accessing context
+  const { data, fetchBooks, getUserBorrowedBooks  } = useContext(MyContext); // Accessing context
   const navigation = useNavigation();
 
   const handleBackPress = () => {
@@ -33,8 +33,8 @@ const BookCardScreen = ({ route }) => {
   const handleBorrowPress = async () => {
     console.log(bookInfo.id);
     try {
-      const user_id = data.user.id;
-      const book_id = bookInfo.id;
+      const user_id = data?.user.id;
+      const book_id = bookInfo?.id;
       const loan_date = new Date().toISOString().split('T')[0];
       const due_date = new Date();
       due_date.setDate(due_date.getDate() + 14);
@@ -48,14 +48,18 @@ const BookCardScreen = ({ route }) => {
       });
 
       if (response.status === 201) {
+        getUserBorrowedBooks(data?.user?.id); // Call this when HomeScreen is focused
         Alert.alert('Success', 'You have successfully borrowed the book!');
+        navigation.goBack();
       }
     } catch (error) {
       // Handle specific error for book already on loan
       if (error.response && error.response.data && error.response.data.error === 'This book is already on loan') {
         Alert.alert('Error', 'This book is already on loan.');
+        navigation.goBack();
       } else {
         Alert.alert('Error', 'Failed to borrow the book. Please try again.');
+        navigation.goBack();
       }
     }
     fetchBooks();

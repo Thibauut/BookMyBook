@@ -22,12 +22,35 @@ import { AppRegistry } from 'react-native';
 import { MyContext } from '../utils/Provider';
 
 const BorrowedCardScreen = ({ route }) => {
-  const { bookInfo, borrowedDate, dueDate } = route.params;
-  const { data, fetchBooks } = useContext(MyContext); // Accessing context
+  const { bookInfo, borrowedDate, dueDate, loanID, userID } = route.params;
+  const { data, getUserBorrowedBooks, fetchBooks } = useContext(MyContext); // Accessing context
   const navigation = useNavigation();
 
   const handleBackPress = () => {
     navigation.goBack();
+  };
+
+  const deleteBookLoan = async (loanId, userId) => {
+    try {
+      // Send a DELETE request with the loan_id and user_id
+      const response = await axios.delete('http://localhost:30360/delete_book_loan', {
+        data: { loan_id: loanID, user_id: userID }  // Sending both loan_id and user_id
+      });
+
+      if (response.status === 200) {
+        Alert.alert('Success', response?.data?.message);
+        getUserBorrowedBooks(data?.user?.id); // Refresh the borrowed books list
+        fetchBooks();
+        navigation.goBack();
+      }
+    } catch (error) {
+      // Handle error responses
+      if (error.response) {
+        Alert.alert('Error', error?.response?.data?.error);
+      } else {
+        Alert.alert('Error', 'Something went wrong');
+      }
+    }
   };
 
   return (
@@ -136,11 +159,11 @@ const BorrowedCardScreen = ({ route }) => {
       }}
     >
         <TouchableOpacity style={styles.loginBtn}
-        // onPress={handleBorrowPress}
+            onPress={() => deleteBookLoan(data.loan_id, data.user.id)}
         >
-        <Text style={{ fontWeight: 'bold', fontSize: 15, color: '#fff' }}>
-            Cancel
-        </Text>
+            <Text style={{ fontWeight: 'bold', fontSize: 15, color: '#fff' }}>
+                Cancel
+            </Text>
         </TouchableOpacity>
     </View>
           </View>
