@@ -11,7 +11,7 @@
 ## Features
 
 - **Borrow a book**: Users can borrow books online.
-- **QR Code**: A QR code is generated for each loan, which the user can scan to pick up the book.
+- **Barcode**: A Barcode is generated for each loan, which the user can scan to pick up the book.
 - **Loan Tracking**: Track borrowed books and due dates.
 
 ## Prerequisites
