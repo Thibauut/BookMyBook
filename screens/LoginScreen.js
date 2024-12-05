@@ -45,8 +45,8 @@ const LoginScreen = () => {
     setIsPasswordFocused(true);
     setIsEmailFocused(false);
   };
-  const emailBorderColor = isEmailFocused ? '#82a3ff' : '#e6e6e6';
-  const passwordBorderColor = isPasswordFocused ? '#82a3ff' : '#e6e6e6';
+  const emailBorderColor = isEmailFocused ? '#71d686' : '#e6e6e6';
+  const passwordBorderColor = isPasswordFocused ? '#71d686' : '#e6e6e6';
   const { data, fetchBooks, fetchTopBooks, fetchReviews, handleLogin } = useContext(MyContext);
 
   const navigation = useNavigation();
@@ -77,16 +77,22 @@ const LoginScreen = () => {
   return (
       <SafeAreaView style={styles.container}>
           <View style={{
-            paddingTop: '15%',
+            paddingTop: '13%',
             paddingHorizontal: '8%',
             marginBottom: '80%',
           }}>
-          <Text style={{fontSize: 50, color: '#000000', marginBottom: 30, fontWeight: 'bold'}}>
+          <Text style={{fontSize: 50, color: '#000000', marginBottom: 20, fontWeight: 'bold'}}>
             Login
           </Text>
-          <Text style={{fontSize: 20, color: '#333333', marginBottom: 70}}>
-            Welcome back to the App 📚
+
+          <Text style={{fontSize: 15, color: '#333333', marginBottom: 10, marginLeft: 20}}>
+            Welcome back to the App !
           </Text>
+          <Image
+            style={[styles.bookImage, { width: 190, height: 170, alignSelf: 'center', marginBottom: 15}]}  // Explicitly set width and height
+            resizeMode="stretch"
+            source={require('../assets/logo.png')}
+          />
 
           <Text style={{fontSize: 15, color: '#333333', marginLeft: 15, fontWeight: 'bold'}}>
             Email Address
@@ -166,7 +172,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: "center",
-    marginBottom: '10%',
+    marginBottom: '2%',
   },
   loginBtn: {
     width: "60%",
@@ -174,8 +180,8 @@ const styles = StyleSheet.create({
     height: '8%',
     alignItems: "center",
     justifyContent: "center",
-    // marginTop: '30%',
-    backgroundColor: "#82a3ff",
+    marginTop: '-25%',
+    backgroundColor: "#71d686",
     alignSelf: 'center',
   },
 

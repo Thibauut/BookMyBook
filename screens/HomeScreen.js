@@ -57,7 +57,7 @@ const HomeScreen = () => {
       <SafeAreaView style={{ flex: 1, backgroundColor: '#fff'}}>
       <View style={styles.containerTitle}>
         <View style={styles.titleContainer}>
-        <Text style={{fontSize: 40, fontWeight: 'bold', padding: '7%'}}>Welcome 📚</Text>
+        <Text style={{fontSize: 40, fontWeight: 'bold', padding: '7%'}}>Welcome 👋</Text>
       </View>
 
       <Text style={{
